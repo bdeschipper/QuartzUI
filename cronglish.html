@@ -1,0 +1,118 @@
+<html>
+    <head>
+        <title>Test</title>
+    </head>
+    <body>
+        <form action="POST" id="cronRepresentation">
+            
+        </form>
+    </body>
+</html>
+
+<script lanugage="javascript">
+    const quartzString = "* 1/2 1,2 ? 10-15 * 2022";
+    var cronElements = quartzString.split(' ');
+
+    const descriptions = "Second,Minute,Hour,Day Of Month,Month,Day Of Week,Year";
+    var labels = descriptions.split(",");
+
+    //used to keep track of which cron value we're looking at.
+    var counter = 0;
+
+    cronElements.forEach(element => {
+        //create the label:
+        const label = document.createElement("div");
+        label.setAttribute("id",labels[counter]);
+        label.innerHTML = labels[counter] + ": ";
+        document.forms[0].appendChild(label);
+
+        //add the select box for type:
+        createCronDropdown(label,element);
+
+        //create the input:
+        const input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("value", element);
+        label.appendChild(input);
+
+        counter++;
+    });
+
+    function AddInputsForRange(parent) {
+        const start = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(start);
+        const end = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(end);
+    }
+
+    function AddInputsForInterval(parent) {
+        const start = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(start);
+        const increment = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(increment);
+    }
+
+    function changeSelect(newSelection,parent) {
+        console.log(newSelection);
+        let children = parent.childNodes;
+
+        //remove existing inputs:
+        for (const node of children) {
+            //console.log(node.nodeName);
+            if(node.nodeName == "INPUT") {
+                parent.removeChild(node);
+            }
+        }
+
+        //add new fields:
+        switch(newSelection) {
+            case "Range":
+                AddInputsForRange(parent);
+                break;
+        }        
+    }
+
+    function createCronDropdown(parent, currentValue) {
+        const optionsText = "Any,Exact,Multiple,Range,Interval";
+        const options = optionsText.split(",");
+            
+        const select = document.createElement("select");
+        select.setAttribute("onclick","changeSelect(this.options[this.selectedIndex].text,this.parentNode)");
+
+        options.forEach(opt => {
+            const newOption = document.createElement("option");
+            newOption.setAttribute("value",opt);
+            newOption.innerHTML = opt;
+            //work out if selected!
+            switch(opt) {
+                case "Any":
+                    if(currentValue=="*") newOption.setAttribute("selected","");
+                    break;
+                case "Multiple":
+                    if(currentValue.indexOf(",")>=0) newOption.setAttribute("selected","");
+                    break
+                case "Range":
+                    if(currentValue.indexOf("-")>=0) newOption.setAttribute("selected","");
+                    break;
+                case "Interval":
+                    if(currentValue.indexOf("/")>=0) newOption.setAttribute("selected","");
+                    break;
+                case "Exact":
+                    const regex = /^[0-9]*$/g;
+                    const found = currentValue.match(regex);
+                    if(found && found.length > 0) newOption.setAttribute("selected","");
+                    break;
+            }
+
+            select.appendChild(newOption);
+        });
+        parent.appendChild(select);
+
+        
+
+    }
+</script>

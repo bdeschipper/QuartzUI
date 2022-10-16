@@ -61,7 +61,10 @@
         var form = document.forms[0];
         for (const child of form.children) {
             //need to find the selected item and then work out which fields to read and the separator
-            console.log(child.id);
+            //console.log(child.id);
+            var select = child.getElementsByTagName("select")
+            var text = select.value;
+            console.log(text);
         }
 
         return false;

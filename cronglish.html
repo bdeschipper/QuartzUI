@@ -38,6 +38,35 @@
         counter++;
     });
 
+    //add button to re-calculate/save?
+    var calcArea = document.createElement("div");
+    var displayCron = document.createElement("span");
+    displayCron.setAttribute("id","displayCron");
+
+    var button = document.createElement("button");
+    button.setAttribute("id","calculate");
+    button.setAttribute("name","calculate");
+    button.setAttribute("onclick","return recalculateCron();");
+    button.innerHTML = "Calculate";
+    
+    calcArea.appendChild(displayCron);
+    calcArea.appendChild(button);
+    document.forms[0].appendChild(calcArea);
+
+    function recalculateCron() {
+        var display = document.getElementById("displayCron");
+        display.innerHTML = "calculating...";
+
+        //loop through each div in the form:
+        var form = document.forms[0];
+        for (const child of form.children) {
+            //need to find the selected item and then work out which fields to read and the separator
+            console.log(child.id);
+        }
+
+        return false;
+    }
+
     function AddInputsForRange(parent) {
         const start = document.createElement("input");
         start.setAttribute("type", "text");

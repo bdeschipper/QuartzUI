@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>Test</title>
@@ -26,19 +27,13 @@
         label.innerHTML = labels[counter] + ": ";
         document.forms[0].appendChild(label);
 
-        //add the select box for type:
+        //add the select box for type (this also creates the inputs for the current type):
         createCronDropdown(label,element);
-
-        //create the input:
-        const input = document.createElement("input");
-        input.setAttribute("type", "text");
-        input.setAttribute("value", element);
-        label.appendChild(input);
 
         counter++;
     });
 
-    //add button to re-calculate/save?
+    //add button to re-calculate or save?
     var calcArea = document.createElement("div");
     var displayCron = document.createElement("span");
     displayCron.setAttribute("id","displayCron");
@@ -53,21 +48,69 @@
     calcArea.appendChild(button);
     document.forms[0].appendChild(calcArea);
 
+    /**
+     * Take the structured UI input and create a Cron Expression from it
+     **/
     function recalculateCron() {
         var display = document.getElementById("displayCron");
-        display.innerHTML = "calculating...";
+        display.innerHTML = "";
 
         //loop through each div in the form:
         var form = document.forms[0];
         for (const child of form.children) {
             //need to find the selected item and then work out which fields to read and the separator
-            //console.log(child.id);
-            var select = child.getElementsByTagName("select")
-            var text = select.value;
-            console.log(text);
+            const selects = child.getElementsByTagName("select");
+            if(selects.length>0) {
+                const opt = selects[0].value;
+                const display = document.getElementById("displayCron");
+
+                switch(opt) {
+                    case "Any":
+                        display.innerHTML += " * ";
+                        break;
+                    case "Multiple":
+                        const mInputs = child.getElementsByTagName("input");
+                        for(var input of mInputs) {
+                            display.innerHTML += input.value + ",";
+                        }
+                        //remove last comma;
+                        display.innerHTML = display.innerHTML.substring(0,display.innerHTML.length-1);
+                        break
+                    case "Range":
+                        const rInputs = child.getElementsByTagName("input");
+                        if(rInputs.length == 2) {
+                            display.innerHTML += " " + rInputs[0].value + "-" + rInputs[1].value;
+                        }
+                        break;
+                    case "Interval":
+                        const iInputs = child.getElementsByTagName("input");
+                        if(iInputs.length == 2) {
+                            display.innerHTML += " " + iInputs[0].value + "/" + iInputs[1].value;
+                        }
+                        break;
+                    case "Exact":
+                        const eInputs = child.getElementsByTagName("input");
+                        if(eInputs.length == 1) {
+                            display.innerHTML += " " + eInputs[0].value;
+                        }
+                        break;
+                }
+            }
         }
 
         return false;
+    }
+
+    function AddInputsForAny(parent) {
+        const start = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(start);
+    }
+
+    function AddInputsForMultiple(parent) {
+        const start = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(start);
     }
 
     function AddInputsForRange(parent) {
@@ -75,7 +118,7 @@
         start.setAttribute("type", "text");
         parent.appendChild(start);
         const end = document.createElement("input");
-        start.setAttribute("type", "text");
+        end.setAttribute("type", "text");
         parent.appendChild(end);
     }
 
@@ -84,26 +127,45 @@
         start.setAttribute("type", "text");
         parent.appendChild(start);
         const increment = document.createElement("input");
-        start.setAttribute("type", "text");
+        increment.setAttribute("type", "text");
         parent.appendChild(increment);
     }
 
-    function changeSelect(newSelection,parent) {
-        console.log(newSelection);
-        let children = parent.childNodes;
+    function AddInputsForExact(parent) {
+        const start = document.createElement("input");
+        start.setAttribute("type", "text");
+        parent.appendChild(start);
+    }
 
-        //remove existing inputs:
-        for (const node of children) {
-            //console.log(node.nodeName);
-            if(node.nodeName == "INPUT") {
-                parent.removeChild(node);
+
+
+    function changeSelect(newSelection,parent) {
+        //console.log(newSelection);
+        let children = parent.children;
+
+        //remove existing inputs (iterate backwards because children is live in the DOM and will remove elements):
+        for(let i=(children.length-1);i>=0;i--) {
+            if(children[i].tagName == "INPUT") {
+                parent.removeChild(children[i]);
             }
         }
 
         //add new fields:
         switch(newSelection) {
+            case "Any": 
+                AddInputsForAny(parent);
+                break;
+            case "Multiple":
+                AddInputsForMultiple(parent);
+                break;
             case "Range":
                 AddInputsForRange(parent);
+                break;
+            case "Interval":
+                AddInputsForInterval(parent);
+                break;
+            case "Exact":
+                AddInputsForExact(parent);
                 break;
         }        
     }
@@ -113,13 +175,13 @@
         const options = optionsText.split(",");
             
         const select = document.createElement("select");
-        select.setAttribute("onclick","changeSelect(this.options[this.selectedIndex].text,this.parentNode)");
+        select.setAttribute("onchange","changeSelect(this.options[this.selectedIndex].text,this.parentNode)");
 
         options.forEach(opt => {
             const newOption = document.createElement("option");
             newOption.setAttribute("value",opt);
             newOption.innerHTML = opt;
-            //work out if selected!
+            //work out if selected:
             switch(opt) {
                 case "Any":
                     if(currentValue=="*") newOption.setAttribute("selected","");
@@ -143,8 +205,5 @@
             select.appendChild(newOption);
         });
         parent.appendChild(select);
-
-        
-
     }
 </script>
